@@ -1,8 +1,15 @@
 package main
 
-import {
+import (
 	"net/http"
-}
+)
 
 func main() {
+	mux := http.NewServeMux()
+	srv := &http.Server{
+		Addr: ":8080",
+		Handler: mux,
+	}
+
+	http.ListenAndServe(srv.Addr, srv.Handler)
 }
