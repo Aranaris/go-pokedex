@@ -1,15 +1,11 @@
+/*
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+
+*/
 package main
 
-import (
-	"net/http"
-)
+import "github.com/Aranaris/go-pokedex/cmd"
 
 func main() {
-	mux := http.NewServeMux()
-	srv := &http.Server{
-		Addr: ":8080",
-		Handler: mux,
-	}
-
-	http.ListenAndServe(srv.Addr, srv.Handler)
+	cmd.Execute()
 }
