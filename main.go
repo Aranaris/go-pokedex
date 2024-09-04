@@ -23,11 +23,18 @@ func preProcessInput(input string) string {
 }
 
 func main() {
+	cl, err := cmd.InitializeCommands()
+	if err != nil {
+		fmt.Printf("Error initializing commands: %s", err)
+	}
 	reader := bufio.NewScanner(os.Stdin)
 	printPrompt()
 	for reader.Scan() {
 		text := preProcessInput(reader.Text())
-		f := cmd.HandleCommand(text)
+		f, err := cl.HandleCommand(text)
+		if err != nil {
+			fmt.Printf("Error running command: %s, Error Out: %s", text, err)
+		}
 		f()
 		fmt.Println()
 
