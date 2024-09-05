@@ -3,6 +3,8 @@ package cmd
 import (
 	"errors"
 	"fmt"
+
+	"internal/pokeapi"
 )
 
 type Command struct{
@@ -26,8 +28,14 @@ func InitializeCommands() (*CommandList, error) {
 		Description: "Exits out of the program",
 	}
 
+	Map := Command{
+		Name: "map",
+		Description: "Displays the next 20 locations of the pokemon map",
+	}
+
 	cl[Help.Name] = Help
 	cl[Exit.Name] = Exit
+	cl[Map.Name] = Map
 	return &cl, nil
 }
 
@@ -45,6 +53,12 @@ func (cl *CommandList) CommandExit() error {
 	return nil
 }
 
+func (cl *CommandList) CommandMap() error {
+	fmt.Println("Showing locations...")
+	pokeapi.GetLocations()
+	return nil
+}
+
 func (cl *CommandList) HandleCommand(input string) error {
 	_, ok := (*cl)[input]
 	if !ok {
@@ -58,6 +72,11 @@ func (cl *CommandList) HandleCommand(input string) error {
 
 	if input == "exit" {
 		cl.CommandExit()
+		return nil
+	}
+
+	if input == "map" {
+		cl.CommandMap()
 		return nil
 	}
 
