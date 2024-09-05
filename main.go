@@ -27,23 +27,22 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error initializing commands: %s", err)
 	}
+
 	reader := bufio.NewScanner(os.Stdin)
 	printPrompt()
+	
+	exec:
 	for reader.Scan() {
 		text := preProcessInput(reader.Text())
-		f, err := cl.HandleCommand(text)
+		err := cl.HandleCommand(text)
 		if err != nil {
 			fmt.Printf("Error running command: %s, Error Out: %s", text, err)
 		}
-		f()
-		fmt.Println()
+		fmt.Println("")
 
 		if text == "exit" {
-			return
+			break exec
 		}
 		printPrompt()
 	}
-
-	fmt.Println()
-
 }
