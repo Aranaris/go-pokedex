@@ -10,13 +10,16 @@ import (
 type Command struct{
 	Name string
 	Description string
-	Function func() error
+	Config *pokeapi.APIConfig
 }
 
 type CommandList map[string]Command
 
 func InitializeCommands() (*CommandList, error) {
 	cl := make(CommandList)
+	cfg := pokeapi.APIConfig{
+		NextURL: "https://pokeapi.co/api/v2/location",
+	}
 
 	Help := Command{
 		Name: "help",
@@ -31,6 +34,7 @@ func InitializeCommands() (*CommandList, error) {
 	Map := Command{
 		Name: "map",
 		Description: "Displays the next 20 locations of the pokemon map",
+		Config: &cfg,
 	}
 
 	cl[Help.Name] = Help
@@ -55,7 +59,12 @@ func (cl *CommandList) CommandExit() error {
 
 func (cl *CommandList) CommandMap() error {
 	fmt.Println("Showing locations...")
-	pokeapi.GetLocations()
+	cfg := (*cl)["map"].Config
+	locations, err := cfg.GetLocations()
+	if err != nil {
+		return err
+	}
+	fmt.Println(locations)
 	return nil
 }
 
