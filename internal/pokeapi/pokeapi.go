@@ -1,6 +1,7 @@
 package pokeapi
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,10 +17,16 @@ type APIConfig struct {
 	PreviousURL string
 }
 
-var POKEAPI_BASE_URL = "https://pokeapi.co/api/v2/"
+type LocationResponse struct {
+	Count int `json:"count"`
+	Next string `json:"next"`
+	Previous string `json:"previous"`
+	Results []Location `json:"results"`
+}
+
 
 func (cfg *APIConfig) GetLocations() ([]Location, error) {
-	res, err := http.Get(POKEAPI_BASE_URL + "location")
+	res, err := http.Get(cfg.NextURL)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
 	}
@@ -30,6 +37,19 @@ func (cfg *APIConfig) GetLocations() ([]Location, error) {
 		return nil, fmt.Errorf("error parsing PokeAPI response body: %w", err)
 	}
 
-	fmt.Println(string(body))
-	return nil, nil
+	locationResponse := LocationResponse{}
+	err = json.Unmarshal(body, &locationResponse)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling locations from PokeAPI: %w", err)
+	}
+
+	if cfg.PreviousURL == "" {
+		cfg.PreviousURL = cfg.NextURL
+	} else {
+		cfg.PreviousURL = locationResponse.Previous
+	}
+	
+	cfg.NextURL = locationResponse.Next
+
+	return locationResponse.Results, nil
 }

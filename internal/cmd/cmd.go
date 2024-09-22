@@ -19,6 +19,7 @@ func InitializeCommands() (*CommandList, error) {
 	cl := make(CommandList)
 	cfg := pokeapi.APIConfig{
 		NextURL: "https://pokeapi.co/api/v2/location",
+		PreviousURL: "",
 	}
 
 	Help := Command{
@@ -64,7 +65,10 @@ func (cl *CommandList) CommandMap() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(locations)
+	
+	for _, location := range locations {
+		fmt.Println(location.Name)
+	}
 	return nil
 }
 
