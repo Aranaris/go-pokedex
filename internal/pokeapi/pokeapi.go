@@ -30,15 +30,33 @@ type LocationResponse struct {
 
 
 func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
-	res, err := http.Get(cfg.NextURL)
+
+	var body []byte
+
+	cc, err := cfg.Cache.Get(cfg.NextURL, cfg.Mutex)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
+		return nil, fmt.Errorf("error checking cache: %w", err)
 	}
+	if cc != nil {
+		fmt.Println("Retrieving values from cache...")
+		body = cc
+	} else {
+		
+		res, err := http.Get(cfg.NextURL)
 
-	body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
+		}
 
-	if err != nil {
-		return nil, fmt.Errorf("error parsing PokeAPI response body: %w", err)
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing PokeAPI response body: %w", err)
+		}
+
+		err = cfg.Cache.Add(cfg.NextURL, body, cfg.Mutex)
+		if err != nil {
+			return nil, fmt.Errorf("error cacheing location data: %w", err)
+		}
 	}
 
 	locationResponse := LocationResponse{}
@@ -51,11 +69,6 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 		cfg.PreviousURL = "https://pokeapi.co/api/v2/location"
 	} else {
 		cfg.PreviousURL = locationResponse.Previous
-	}
-	
-	err = cfg.Cache.Add(cfg.NextURL, body, cfg.Mutex)
-	if err != nil {
-		return nil, fmt.Errorf("error cacheing location data: %w", err)
 	}
 
 	cfg.NextURL = locationResponse.Next

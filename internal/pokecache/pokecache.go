@@ -19,7 +19,7 @@ func NewCache(interval time.Duration) (Cache, error) {
 }
 
 func (c *Cache) Add(url string, val []byte, mutex *sync.RWMutex) error {
-	fmt.Println("saving to cache")
+	fmt.Println("saving locations to cache...")
 	ce := CacheEntry{}
 	ce.Value = val
 	ce.CreatedAt = time.Now()
@@ -27,4 +27,10 @@ func (c *Cache) Add(url string, val []byte, mutex *sync.RWMutex) error {
 	(*c)[url] = ce
 	mutex.Unlock()
 	return nil
+}
+
+func (c *Cache) Get(url string, mutex *sync.RWMutex) ([]byte, error) {
+	mutex.RLock()
+	defer mutex.RUnlock()
+	return (*c)[url].Value, nil
 }
