@@ -38,9 +38,17 @@ func InitializeCommands() (*CommandList, error) {
 		Config: &cfg,
 	}
 
+	MapB := Command{
+		Name: "mapb",
+		Description: "Displays the previous 20 locations of the pokemon map",
+		Config: &cfg,
+	}
+
 	cl[Help.Name] = Help
 	cl[Exit.Name] = Exit
 	cl[Map.Name] = Map
+	cl[MapB.Name] = MapB
+
 	return &cl, nil
 }
 
@@ -61,7 +69,21 @@ func (cl *CommandList) CommandExit() error {
 func (cl *CommandList) CommandMap() error {
 	fmt.Println("Showing locations...")
 	cfg := (*cl)["map"].Config
-	locations, err := cfg.GetLocations()
+	locations, err := cfg.GetNextLocations()
+	if err != nil {
+		return err
+	}
+	
+	for _, location := range locations {
+		fmt.Println(location.Name)
+	}
+	return nil
+}
+
+func (cl *CommandList) CommandMapB() error {
+	fmt.Println("Showing locations...")
+	cfg := (*cl)["mapb"].Config
+	locations, err := cfg.GetPreviousLocations()
 	if err != nil {
 		return err
 	}
@@ -90,6 +112,11 @@ func (cl *CommandList) HandleCommand(input string) error {
 
 	if input == "map" {
 		cl.CommandMap()
+		return nil
+	}
+
+	if input == "mapb" {
+		cl.CommandMapB()
 		return nil
 	}
 

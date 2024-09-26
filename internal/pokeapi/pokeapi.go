@@ -25,7 +25,7 @@ type LocationResponse struct {
 }
 
 
-func (cfg *APIConfig) GetLocations() ([]Location, error) {
+func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 	res, err := http.Get(cfg.NextURL)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
@@ -44,12 +44,40 @@ func (cfg *APIConfig) GetLocations() ([]Location, error) {
 	}
 
 	if cfg.PreviousURL == "" {
-		cfg.PreviousURL = cfg.NextURL
+		cfg.PreviousURL = "https://pokeapi.co/api/v2/location"
 	} else {
 		cfg.PreviousURL = locationResponse.Previous
 	}
 	
 	cfg.NextURL = locationResponse.Next
 
+	return locationResponse.Results, nil
+}
+
+func (cfg *APIConfig) GetPreviousLocations() ([]Location, error) {
+	if cfg.PreviousURL == "" {
+		fmt.Println("Reached start of map")
+		return nil, fmt.Errorf("no previous locations available")
+	}
+
+	res, err := http.Get(cfg.PreviousURL)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing PokeAPI response body: %w", err)
+	}
+
+	locationResponse := LocationResponse{}
+	err = json.Unmarshal(body, &locationResponse)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling locations from PokeAPI: %w", err)
+	}
+
+	cfg.NextURL = locationResponse.Next
+	cfg.PreviousURL = locationResponse.Previous
+	
 	return locationResponse.Results, nil
 }
