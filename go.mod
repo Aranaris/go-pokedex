@@ -9,3 +9,7 @@ replace internal/cmd => ./internal/cmd
 require internal/pokeapi v1.0.0 // indirect
 
 replace internal/pokeapi => ./internal/pokeapi
+
+require internal/pokecache v1.0.0 // indirect
+
+replace internal/pokecache => ./internal/pokecache

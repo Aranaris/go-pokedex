@@ -3,8 +3,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"internal/pokeapi"
+	"internal/pokecache"
 )
 
 type Command struct{
@@ -17,9 +19,12 @@ type CommandList map[string]Command
 
 func InitializeCommands() (*CommandList, error) {
 	cl := make(CommandList)
+	c, _ := pokecache.NewCache(time.Duration(10))
+
 	cfg := pokeapi.APIConfig{
 		NextURL: "https://pokeapi.co/api/v2/location",
 		PreviousURL: "",
+		Cache: c,
 	}
 
 	Help := Command{

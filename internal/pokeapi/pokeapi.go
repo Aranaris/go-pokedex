@@ -3,6 +3,7 @@ package pokeapi
 import (
 	"encoding/json"
 	"fmt"
+	"internal/pokecache"
 	"io"
 	"net/http"
 )
@@ -15,6 +16,7 @@ type Location struct {
 type APIConfig struct {
 	NextURL string
 	PreviousURL string
+	Cache pokecache.Cache
 }
 
 type LocationResponse struct {
@@ -49,8 +51,13 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 		cfg.PreviousURL = locationResponse.Previous
 	}
 	
-	cfg.NextURL = locationResponse.Next
+	err = cfg.Cache.Add(cfg.NextURL, body)
+	if err != nil {
+		return nil, fmt.Errorf("error cacheing location data: %w", err)
+	}
 
+	cfg.NextURL = locationResponse.Next
+	
 	return locationResponse.Results, nil
 }
 
