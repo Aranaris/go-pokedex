@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"internal/pokeapi"
@@ -25,6 +26,7 @@ func InitializeCommands() (*CommandList, error) {
 		NextURL: "https://pokeapi.co/api/v2/location",
 		PreviousURL: "",
 		Cache: c,
+		Mutex: &sync.RWMutex{},
 	}
 
 	Help := Command{

@@ -6,6 +6,7 @@ import (
 	"internal/pokecache"
 	"io"
 	"net/http"
+	"sync"
 )
 
 type Location struct {
@@ -17,6 +18,7 @@ type APIConfig struct {
 	NextURL string
 	PreviousURL string
 	Cache pokecache.Cache
+	Mutex *sync.RWMutex
 }
 
 type LocationResponse struct {
@@ -51,7 +53,7 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 		cfg.PreviousURL = locationResponse.Previous
 	}
 	
-	err = cfg.Cache.Add(cfg.NextURL, body)
+	err = cfg.Cache.Add(cfg.NextURL, body, cfg.Mutex)
 	if err != nil {
 		return nil, fmt.Errorf("error cacheing location data: %w", err)
 	}
