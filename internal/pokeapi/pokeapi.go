@@ -33,13 +33,13 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 
 	var body []byte
 
-	cc, err := cfg.Cache.Get(cfg.NextURL, cfg.Mutex)
+	c, err := cfg.Cache.Get(cfg.NextURL, cfg.Mutex)
 	if err != nil {
 		return nil, fmt.Errorf("error checking cache: %w", err)
 	}
-	if cc != nil {
+	if c != nil {
 		fmt.Println("Retrieving values from cache...")
-		body = cc
+		body = c
 	} else {
 		
 		res, err := http.Get(cfg.NextURL)
@@ -77,19 +77,31 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 }
 
 func (cfg *APIConfig) GetPreviousLocations() ([]Location, error) {
+
 	if cfg.PreviousURL == "" {
 		fmt.Println("Reached start of map")
 		return nil, fmt.Errorf("no previous locations available")
 	}
 
-	res, err := http.Get(cfg.PreviousURL)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
-	}
+	var body []byte
 
-	body, err := io.ReadAll(res.Body)
+	c, err := cfg.Cache.Get(cfg.PreviousURL, cfg.Mutex)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing PokeAPI response body: %w", err)
+		return nil, fmt.Errorf("error checking cache: %w", err)
+	}
+	if c != nil {
+		fmt.Println("Retrieving values from cache...")
+		body = c
+	} else {
+		res, err := http.Get(cfg.PreviousURL)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving locations from PokeAPI: %w", err)
+		}
+	
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing PokeAPI response body: %w", err)
+		}
 	}
 
 	locationResponse := LocationResponse{}

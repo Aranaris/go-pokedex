@@ -24,8 +24,9 @@ func (c *Cache) Add(url string, val []byte, mutex *sync.RWMutex) error {
 	ce.Value = val
 	ce.CreatedAt = time.Now()
 	mutex.Lock()
+	defer mutex.Unlock()
 	(*c)[url] = ce
-	mutex.Unlock()
+	
 	return nil
 }
 
