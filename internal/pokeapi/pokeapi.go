@@ -17,7 +17,7 @@ type Location struct {
 type APIConfig struct {
 	NextURL string
 	PreviousURL string
-	Cache pokecache.Cache
+	Cache *pokecache.Cache
 	Mutex *sync.RWMutex
 }
 

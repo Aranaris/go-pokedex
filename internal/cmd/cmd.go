@@ -20,7 +20,7 @@ type CommandList map[string]Command
 
 func InitializeCommands() (*CommandList, error) {
 	cl := make(CommandList)
-	c, _ := pokecache.NewCache(time.Duration(10))
+	c, _ := pokecache.NewCache(time.Duration(10 * time.Second))
 
 	cfg := pokeapi.APIConfig{
 		NextURL: "https://pokeapi.co/api/v2/location",
