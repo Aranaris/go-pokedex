@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,10 +52,17 @@ func InitializeCommands() (*CommandList, error) {
 		Config: &cfg,
 	}
 
+	Explore := Command{
+		Name: "explore",
+		Description: "Displays a list of all pokemon in a given location area",
+		Config: &cfg,
+	}
+
 	cl[Help.Name] = Help
 	cl[Exit.Name] = Exit
 	cl[Map.Name] = Map
 	cl[MapB.Name] = MapB
+	cl[Explore.Name] = Explore
 
 	return &cl, nil
 }
@@ -101,12 +109,23 @@ func (cl *CommandList) CommandMapB() error {
 	return nil
 }
 
-func (cl *CommandList) HandleCommand(input string) error {
-	_, ok := (*cl)[input]
-	if !ok {
-		return errors.New("Command not found: " + input)
+func (cl *CommandList) CommandExplore(location string) error {
+	fmt.Printf("Showing pokemon at location %s: ", location)
+	cfg := (*cl)["explore"].Config
+	pokemonlist, err := cfg.GetPokemonFromLocation(location)
+	if err != nil {
+		fmt.Printf("error retrieving pokemon list: %s", err)
+		return err
 	}
-	
+
+	for _, pokemon := range pokemonlist {
+		fmt.Println(pokemon.Name)
+	}
+
+	return nil
+}
+
+func (cl *CommandList) HandleCommand(input string) error {
 	if input == "help" {
 		cl.CommandHelp()
 		return nil
@@ -126,6 +145,16 @@ func (cl *CommandList) HandleCommand(input string) error {
 		cl.CommandMapB()
 		return nil
 	}
+	
+	inputs := strings.Split(input, " ")
 
-	return nil
+	if inputs[0] == "explore" {
+		if len(inputs) <= 1 {
+			return errors.New("no location provided to explore")
+		}
+		cl.CommandExplore(inputs[1])
+		return nil
+	}
+
+	return errors.New("Command not found: " + input)
 }

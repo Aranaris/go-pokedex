@@ -28,6 +28,20 @@ type LocationResponse struct {
 	Results []Location `json:"results"`
 }
 
+type Pokemon struct {
+	Name string `json:"name"`
+	PokemonURL string `json:"url"`
+}
+
+type Encounter struct {
+	EncounterDetails struct{
+		Pokemon Pokemon
+	} `json:"pokemon"`
+}
+
+type PokemonLocResponse struct {
+	EncounterList []Encounter `json:"pokemon_encounters"`
+}
 
 func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 
@@ -55,7 +69,7 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 
 		err = cfg.Cache.Add(cfg.NextURL, body, cfg.Mutex)
 		if err != nil {
-			return nil, fmt.Errorf("error cacheing location data: %w", err)
+			return nil, fmt.Errorf("error caching location data: %w", err)
 		}
 	}
 
@@ -114,4 +128,33 @@ func (cfg *APIConfig) GetPreviousLocations() ([]Location, error) {
 	cfg.PreviousURL = locationResponse.Previous
 	
 	return locationResponse.Results, nil
+}
+
+func (cfg *APIConfig) GetPokemonFromLocation(location string) ([]Pokemon, error) {
+	url := "https://pokeapi.co/api/v2/location-area/" + location
+
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving pokemon from PokeAPI: %w", err)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}	
+
+	encounters := PokemonLocResponse{}
+
+	err = json.Unmarshal(body, &encounters)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling json: %w", err)
+	}
+
+	pl := make([]Pokemon, len(encounters.EncounterList))
+
+	for k, v := range(encounters.EncounterList) {
+		pl[k] = v.EncounterDetails.Pokemon
+	}
+
+	return pl, nil
 }
