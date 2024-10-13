@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"internal/pokecache"
 	"io"
+	"math/rand"
 	"net/http"
 	"sync"
 )
@@ -31,6 +32,7 @@ type APIConfig struct {
 type Pokemon struct {
 	Name string `json:"name"`
 	PokemonURL string `json:"url"`
+	Experience int `json:"base_experience"`
 }
 
 type Encounter struct {
@@ -157,4 +159,29 @@ func (cfg *APIConfig) GetPokemonFromLocation(location string) ([]Pokemon, error)
 	}
 
 	return pl, nil
+}
+
+func (cfg *APIConfig) CatchPokemon(pokemon string) (bool, error) {
+	url := "https://pokeapi.co/api/v2/pokemon/" + pokemon
+
+	res, err := http.Get(url)
+	if err != nil {
+		return false, fmt.Errorf("error retrieving pokemon from PokeAPI: %w", err)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return false, fmt.Errorf("error reading response body: %w", err)
+	}
+
+	p := Pokemon{}
+
+	err = json.Unmarshal(body, &p)
+	if err != nil {
+		return false, fmt.Errorf("error unmarshalling json: %w", err)
+	}
+	r := rand.Intn(500)
+	e := p.Experience
+	
+	return e < r, nil
 }

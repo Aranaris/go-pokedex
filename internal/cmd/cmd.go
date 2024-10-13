@@ -58,11 +58,18 @@ func InitializeCommands() (*CommandList, error) {
 		Config: &cfg,
 	}
 
+	Catch := Command{
+		Name: "catch",
+		Description: "Attempt to catch a pokemon",
+		Config: &cfg,
+	}
+
 	cl[Help.Name] = Help
 	cl[Exit.Name] = Exit
 	cl[Map.Name] = Map
 	cl[MapB.Name] = MapB
 	cl[Explore.Name] = Explore
+	cl[Catch.Name] = Catch
 
 	return &cl, nil
 }
@@ -125,6 +132,24 @@ func (cl *CommandList) CommandExplore(location string) error {
 	return nil
 }
 
+func(cl *CommandList) CommandCatch(pokemon string) error {
+	fmt.Printf("Attempting to catch %s...", pokemon)
+	fmt.Println("")
+	cfg := (*cl)["catch"].Config
+	c, err := cfg.CatchPokemon(pokemon)
+	if err != nil {
+		fmt.Printf("error catching pokemon: %s", err)
+	}
+
+	if c {
+		fmt.Printf("%s was caught!", pokemon)
+	} else {
+		fmt.Printf("%s escaped!", pokemon)
+	}
+	
+	return nil
+}
+
 func (cl *CommandList) HandleCommand(input string) error {
 	if input == "help" {
 		cl.CommandHelp()
@@ -156,5 +181,12 @@ func (cl *CommandList) HandleCommand(input string) error {
 		return nil
 	}
 
+	if inputs[0] == "catch" {
+		if len(inputs) <= 1 {
+			return errors.New("no pokemon name provided to catch")
+		}
+		cl.CommandCatch(inputs[1])
+		return nil
+	}
 	return errors.New("Command not found: " + input)
 }
