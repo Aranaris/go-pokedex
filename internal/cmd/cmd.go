@@ -24,7 +24,7 @@ func InitializeCommands() (*CommandList, error) {
 	c, _ := pokecache.NewCache(time.Duration(10 * time.Second))
 
 	cfg := pokeapi.APIConfig{
-		NextURL: "https://pokeapi.co/api/v2/location",
+		NextURL: "https://pokeapi.co/api/v2/location-area/",
 		PreviousURL: "",
 		Cache: c,
 		Mutex: &sync.RWMutex{},

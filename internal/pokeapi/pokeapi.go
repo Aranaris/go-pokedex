@@ -9,9 +9,16 @@ import (
 	"sync"
 )
 
-type Location struct {
-	ID int `json:"id"`
+type LocationArea struct {
 	Name string `json:"name"`
+	URL string `json:"url"`
+}
+
+type LocationAreaResponse struct {
+	Count int `json:"count"`
+	Next string `json:"next"`
+	Previous string `json:"previous"`
+	Results []LocationArea `json:"results"`
 }
 
 type APIConfig struct {
@@ -21,29 +28,22 @@ type APIConfig struct {
 	Mutex *sync.RWMutex
 }
 
-type LocationResponse struct {
-	Count int `json:"count"`
-	Next string `json:"next"`
-	Previous string `json:"previous"`
-	Results []Location `json:"results"`
-}
-
 type Pokemon struct {
 	Name string `json:"name"`
 	PokemonURL string `json:"url"`
 }
 
 type Encounter struct {
-	EncounterDetails struct{
-		Pokemon Pokemon
-	} `json:"pokemon"`
+	Pokemon Pokemon `json:"pokemon"`
 }
 
 type PokemonLocResponse struct {
 	EncounterList []Encounter `json:"pokemon_encounters"`
+	Name string `json:"name"`
+	ID int `json:"id"`
 }
 
-func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
+func (cfg *APIConfig) GetNextLocations() ([]LocationArea, error) {
 
 	var body []byte
 
@@ -73,24 +73,24 @@ func (cfg *APIConfig) GetNextLocations() ([]Location, error) {
 		}
 	}
 
-	locationResponse := LocationResponse{}
-	err = json.Unmarshal(body, &locationResponse)
+	lar := LocationAreaResponse{}
+	err = json.Unmarshal(body, &lar)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling locations from PokeAPI: %w", err)
 	}
 
 	if cfg.PreviousURL == "" {
-		cfg.PreviousURL = "https://pokeapi.co/api/v2/location"
+		cfg.PreviousURL = "https://pokeapi.co/api/v2/location-area/"
 	} else {
-		cfg.PreviousURL = locationResponse.Previous
+		cfg.PreviousURL = lar.Previous
 	}
 
-	cfg.NextURL = locationResponse.Next
-	
-	return locationResponse.Results, nil
+	cfg.NextURL = lar.Next
+
+	return lar.Results, nil
 }
 
-func (cfg *APIConfig) GetPreviousLocations() ([]Location, error) {
+func (cfg *APIConfig) GetPreviousLocations() ([]LocationArea, error) {
 
 	if cfg.PreviousURL == "" {
 		fmt.Println("Reached start of map")
@@ -118,16 +118,16 @@ func (cfg *APIConfig) GetPreviousLocations() ([]Location, error) {
 		}
 	}
 
-	locationResponse := LocationResponse{}
-	err = json.Unmarshal(body, &locationResponse)
+	lar := LocationAreaResponse{}
+	err = json.Unmarshal(body, &lar)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling locations from PokeAPI: %w", err)
 	}
 
-	cfg.NextURL = locationResponse.Next
-	cfg.PreviousURL = locationResponse.Previous
+	cfg.NextURL = lar.Next
+	cfg.PreviousURL = lar.Previous
 	
-	return locationResponse.Results, nil
+	return lar.Results, nil
 }
 
 func (cfg *APIConfig) GetPokemonFromLocation(location string) ([]Pokemon, error) {
@@ -153,7 +153,7 @@ func (cfg *APIConfig) GetPokemonFromLocation(location string) ([]Pokemon, error)
 	pl := make([]Pokemon, len(encounters.EncounterList))
 
 	for k, v := range(encounters.EncounterList) {
-		pl[k] = v.EncounterDetails.Pokemon
+		pl[k] = v.Pokemon
 	}
 
 	return pl, nil
