@@ -27,6 +27,7 @@ type APIConfig struct {
 	PreviousURL string
 	Cache *pokecache.Cache
 	Mutex *sync.RWMutex
+	Pokedex *map[string]Pokemon
 }
 
 type Pokemon struct {
@@ -180,8 +181,22 @@ func (cfg *APIConfig) CatchPokemon(pokemon string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error unmarshalling json: %w", err)
 	}
-	r := rand.Intn(500)
-	e := p.Experience
 	
-	return e < r, nil
+	if p.Experience < rand.Intn(500) {
+		_, ok := (*cfg.Pokedex)[p.Name]
+		if !ok {
+			(*cfg.Pokedex)[p.Name] = p
+		}
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func(cfg *APIConfig) GetPokedex() ([]Pokemon, error) {
+	pd := make([]Pokemon, len(*cfg.Pokedex))
+	for _, v := range(*cfg.Pokedex) {
+		pd = append(pd, v)
+	}
+	return pd, nil
 }
