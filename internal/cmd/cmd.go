@@ -28,6 +28,7 @@ func InitializeCommands() (*CommandList, error) {
 		PreviousURL: "",
 		Cache: c,
 		Mutex: &sync.RWMutex{},
+		Pokedex: map[string]*pokeapi.Pokemon{},
 	}
 
 	Help := Command{
@@ -64,12 +65,19 @@ func InitializeCommands() (*CommandList, error) {
 		Config: &cfg,
 	}
 
+	Inspect := Command{
+		Name: "inspect",
+		Description: "Get pokemon info from pokedex",
+		Config: &cfg,
+	}
+
 	cl[Help.Name] = Help
 	cl[Exit.Name] = Exit
 	cl[Map.Name] = Map
 	cl[MapB.Name] = MapB
 	cl[Explore.Name] = Explore
 	cl[Catch.Name] = Catch
+	cl[Inspect.Name] = Inspect
 
 	return &cl, nil
 }
@@ -132,7 +140,7 @@ func (cl *CommandList) CommandExplore(location string) error {
 	return nil
 }
 
-func(cl *CommandList) CommandCatch(pokemon string) error {
+func (cl *CommandList) CommandCatch(pokemon string) error {
 	fmt.Printf("Attempting to catch %s...", pokemon)
 	fmt.Println("")
 	cfg := (*cl)["catch"].Config
@@ -145,6 +153,20 @@ func(cl *CommandList) CommandCatch(pokemon string) error {
 		fmt.Printf("%s was caught!", pokemon)
 	} else {
 		fmt.Printf("%s escaped!", pokemon)
+	}
+	
+	return nil
+}
+
+func (cl *CommandList) CommandInspect(pokemon string) error {
+	fmt.Printf("Getting %s info from pokedex...", pokemon)
+	fmt.Println("")
+	cfg := (*cl)["inspect"].Config
+	pd, err := cfg.InspectPokemon(pokemon)
+	if err != nil {
+		fmt.Printf("error getting pokemon info: %s", err)
+	} else {
+		fmt.Println(pd)
 	}
 	
 	return nil
@@ -186,6 +208,14 @@ func (cl *CommandList) HandleCommand(input string) error {
 			return errors.New("no pokemon name provided to catch")
 		}
 		cl.CommandCatch(inputs[1])
+		return nil
+	}
+
+	if inputs[0] == "inspect" {
+		if len(inputs) <= 1 {
+			return errors.New("no pokemon name provided to inspect")
+		}
+		cl.CommandInspect(inputs[1])
 		return nil
 	}
 	return errors.New("Command not found: " + input)

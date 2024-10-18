@@ -27,13 +27,27 @@ type APIConfig struct {
 	PreviousURL string
 	Cache *pokecache.Cache
 	Mutex *sync.RWMutex
-	Pokedex *map[string]Pokemon
+	Pokedex map[string]*Pokemon
 }
 
 type Pokemon struct {
 	Name string `json:"name"`
 	PokemonURL string `json:"url"`
 	Experience int `json:"base_experience"`
+	Height int `json:"height"`
+	Weight int `json:"weight"`
+	Stats []struct{
+		Base int `json:"base_stat"`
+		Effort int `json:"effort"`
+		Stat struct{
+			Name string `json:"name"`
+		} `json:"stat"`
+	}
+	Types []struct{
+		Type struct{
+			Name string `json:"name"`
+		} `json:"types"`
+	}
 }
 
 type Encounter struct {
@@ -183,9 +197,10 @@ func (cfg *APIConfig) CatchPokemon(pokemon string) (bool, error) {
 	}
 	
 	if p.Experience < rand.Intn(500) {
-		_, ok := (*cfg.Pokedex)[p.Name]
+		_, ok := cfg.Pokedex[p.Name]
+
 		if !ok {
-			(*cfg.Pokedex)[p.Name] = p
+			cfg.Pokedex[p.Name] = &p
 		}
 		return true, nil
 	}
@@ -193,10 +208,18 @@ func (cfg *APIConfig) CatchPokemon(pokemon string) (bool, error) {
 	return false, nil
 }
 
+func (cfg *APIConfig) InspectPokemon(pokemon string) (Pokemon, error) {
+	val, ok := cfg.Pokedex[pokemon]
+	if !ok {
+		return Pokemon{}, fmt.Errorf("%s has not been caught yet", pokemon)
+	}
+	return *val, nil
+}
+
 func(cfg *APIConfig) GetPokedex() ([]Pokemon, error) {
-	pd := make([]Pokemon, len(*cfg.Pokedex))
-	for _, v := range(*cfg.Pokedex) {
-		pd = append(pd, v)
+	pd := make([]Pokemon, len(cfg.Pokedex))
+	for _, v := range(cfg.Pokedex) {
+		pd = append(pd, *v)
 	}
 	return pd, nil
 }
