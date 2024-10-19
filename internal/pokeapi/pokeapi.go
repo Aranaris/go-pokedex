@@ -42,12 +42,12 @@ type Pokemon struct {
 		Stat struct{
 			Name string `json:"name"`
 		} `json:"stat"`
-	}
+	} `json:"stats"`
 	Types []struct{
 		Type struct{
 			Name string `json:"name"`
-		} `json:"types"`
-	}
+		} `json:"type"`
+	}`json:"types"`
 }
 
 type Encounter struct {
@@ -208,12 +208,12 @@ func (cfg *APIConfig) CatchPokemon(pokemon string) (bool, error) {
 	return false, nil
 }
 
-func (cfg *APIConfig) InspectPokemon(pokemon string) (Pokemon, error) {
+func (cfg *APIConfig) InspectPokemon(pokemon string) (string, error) {
 	val, ok := cfg.Pokedex[pokemon]
 	if !ok {
-		return Pokemon{}, fmt.Errorf("%s has not been caught yet", pokemon)
+		return "", fmt.Errorf("%s has not been caught yet", pokemon)
 	}
-	return *val, nil
+	return FormatPokemonData(*val), nil
 }
 
 func(cfg *APIConfig) GetPokedex() ([]Pokemon, error) {
@@ -222,4 +222,28 @@ func(cfg *APIConfig) GetPokedex() ([]Pokemon, error) {
 		pd = append(pd, *v)
 	}
 	return pd, nil
+}
+
+func FormatPokemonData(p Pokemon) string {
+	s := fmt.Sprintf(
+	"Pokemon: %s\n" + 
+	"Height (dm): %v\n" +
+	"Weight (hg): %v\n", 
+	p.Name, p.Height, p.Weight)
+
+	if len(p.Types) > 0 {
+		s = s + "Types: \n"
+		for _, t := range p.Types {
+			s = s + fmt.Sprintf("- %s\n", t.Type.Name)
+		}
+	}
+
+	if len(p.Stats) > 0 {
+		s = s + "Stats: \n"
+		for _, stat := range p.Stats {
+			s = s + fmt.Sprintf("- %s: %v\n", stat.Stat.Name, stat.Base)
+		}
+	}
+	
+	return s
 }
