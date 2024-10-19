@@ -216,7 +216,7 @@ func (cfg *APIConfig) InspectPokemon(pokemon string) (string, error) {
 	return FormatPokemonData(*val), nil
 }
 
-func(cfg *APIConfig) GetPokedex() ([]Pokemon, error) {
+func (cfg *APIConfig) GetPokedex() ([]Pokemon, error) {
 	pd := make([]Pokemon, len(cfg.Pokedex))
 	for _, v := range(cfg.Pokedex) {
 		pd = append(pd, *v)
@@ -245,5 +245,17 @@ func FormatPokemonData(p Pokemon) string {
 		}
 	}
 	
+	return s
+}
+
+func (cfg *APIConfig) DisplayPokedex() string {
+	if len(cfg.Pokedex) == 0 {
+		return "No pokemon have been caught yet!"
+	}
+
+	s := fmt.Sprintln("Your Pokedex: ")
+	for _, p := range cfg.Pokedex {
+		s = s + fmt.Sprintf("- %s\n", p.Name)
+	}
 	return s
 }

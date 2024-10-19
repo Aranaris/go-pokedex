@@ -71,6 +71,12 @@ func InitializeCommands() (*CommandList, error) {
 		Config: &cfg,
 	}
 
+	Pokedex := Command{
+		Name:"pokedex",
+		Description: "Show all pokemon that have been caught",
+		Config: &cfg,
+	}
+
 	cl[Help.Name] = Help
 	cl[Exit.Name] = Exit
 	cl[Map.Name] = Map
@@ -78,6 +84,7 @@ func InitializeCommands() (*CommandList, error) {
 	cl[Explore.Name] = Explore
 	cl[Catch.Name] = Catch
 	cl[Inspect.Name] = Inspect
+	cl[Pokedex.Name] = Pokedex
 
 	return &cl, nil
 }
@@ -172,6 +179,13 @@ func (cl *CommandList) CommandInspect(pokemon string) error {
 	return nil
 }
 
+func (cl *CommandList) CommandPokedex() error {
+	fmt.Println("Showing all pokemon currently in pokedex...")
+	cfg := (*cl)["pokedex"].Config
+	fmt.Println(cfg.DisplayPokedex())
+	return nil
+}
+
 func (cl *CommandList) HandleCommand(input string) error {
 	if input == "help" {
 		cl.CommandHelp()
@@ -190,6 +204,11 @@ func (cl *CommandList) HandleCommand(input string) error {
 
 	if input == "mapb" {
 		cl.CommandMapB()
+		return nil
+	}
+
+	if input == "pokedex" {
+		cl.CommandPokedex()
 		return nil
 	}
 	
